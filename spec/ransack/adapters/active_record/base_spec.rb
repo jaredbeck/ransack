@@ -144,6 +144,26 @@ module Ransack
             s = Person.ransack('')
           end
 
+          context 'boolean column' do
+            def expected_boolean_query(boolean_value)
+              field = "#{quote_table_name("people")}.#{quote_column_name("awesome")}"
+              condition = Person.connection.send("quoted_#{boolean_value}")
+              "#{field} = #{condition}"
+            end
+
+            it "should find true records when given char '1'" do
+              search = Person.ransack(:awesome_eq => '1')
+              expect(search.result.to_sql).to \
+                include(expected_boolean_query(true))
+            end
+
+            it "should find false records when given char '0'" do
+              search = Person.ransack(:awesome_eq => '0')
+              expect(search.result.to_sql).to \
+                include(expected_boolean_query(false))
+            end
+          end
+
           it "should function correctly with a multi-parameter attribute" do
             date = Date.current
             s = Person.ransack(
